@@ -1,0 +1,36 @@
+# IOC List Example - format: TYPE|VALUE|METADATA
+# This file contains example IOCs for demonstration purposes
+# Real IOCs would come from threat intelligence feeds
+
+# Hash-based IOCs (common malware samples - examples only)
+HASH|md5:44d88612fea8a8f36de82e1278abb02f|eicar-test-file
+HASH|sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f|eicar-test-signature
+HASH|md5:6ce6f415d8475545be5ba114f208b0ff|suspicious-dropper
+HASH|sha256:3395856ce81f2b7382dee72602f798b642f14140|wannacry-sample
+HASH|sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709|empty-file-test
+
+# IP-based IOCs (RFC reserved/documentation IPs for safety)
+IP|192.0.2.44|documentation-ip-suspicious
+IP|198.51.100.25|test-network-c2-server
+IP|203.0.113.77|documentation-ip-botnet
+IP|10.0.0.1|internal-suspicious-scanner
+IP|172.16.254.1|potential-lateral-movement
+
+# Domain-based IOCs (safe example domains)
+DOMAIN|malicious.example.com|phishing-campaign-2024
+DOMAIN|evil.example.net|malware-c2-server
+DOMAIN|badstuff.example.org|exploit-kit-landing
+DOMAIN|suspicious-domain.test|trojan-callback
+DOMAIN|phishing-site.localhost|credential-harvester
+
+# YARA rule references
+YARA|rule:Suspicious_PE|detects-packed-executables
+YARA|rule:Base64_Encoded_Executable|obfuscated-payload
+YARA|rule:Suspicious_Strings|malware-indicators
+
+# Additional test IOCs
+HASH|md5:098f6bcd4621d373cade4e832627b4f6|test-malware
+HASH|sha256:9b871d224bd56c0292c1e126e9f3d1cc8e1b6e8a278e633f1d5b6460e8e9a9b7|ransomware-test
+IP|127.0.0.1|localhost-backdoor-test
+IP|0.0.0.0|null-route-suspicious
+DOMAIN|localhost.localdomain|suspicious-local-resolution
