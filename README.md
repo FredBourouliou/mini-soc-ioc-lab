@@ -57,7 +57,7 @@ The exit code is `1` when something is detected, so it can gate a script or a CI
 ## Tests and Docker
 
 ```bash
-pytest tests/ -v                      # 18 tests
+pytest tests/ -v                      # 17 tests
 docker build -t mini-soc-ioc-lab .
 docker run --rm -v "$PWD/samples:/app/samples" mini-soc-ioc-lab \
   --targets samples/ --ioc ioc/ioc_list.txt --yara yara/rules.yar --no-processes

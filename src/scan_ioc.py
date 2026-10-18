@@ -10,7 +10,6 @@ import html as html_lib
 import json
 import logging
 import os
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -29,17 +28,6 @@ from utils import (
 )
 from yara_integration import YaraScanner
 from osint_enrich import OSINTEnricher
-
-
-_SECRET_ARG = re.compile(
-    r'(?i)(--?(?:password|passwd|pwd|token|secret|api[-_]?key|key|auth)[= ])(\S+)')
-_URL_CREDS = re.compile(r'(\w+://)[^/\s:@]+:[^/\s@]+@')
-
-
-def redact_cmdline(cmdline: str) -> str:
-    """Mask obvious secrets (password/token flags, user:pass@ in URLs) before reporting."""
-    cmdline = _SECRET_ARG.sub(r'\1***', cmdline)
-    return _URL_CREDS.sub(r'\1***@', cmdline)
 
 
 def md_inline(value: Any) -> str:
@@ -208,7 +196,7 @@ class IOCScanner:
                             'pid': proc_info['pid'],
                             'name': proc_info['name'],
                             'ioc': ip,
-                            'cmdline': redact_cmdline(cmdline),
+                            'executable': (proc_info.get('cmdline') or [''])[0],  # never the full cmdline: it may hold secrets
                             'timestamp': format_timestamp(),
                             'severity': 'HIGH'
                         }
