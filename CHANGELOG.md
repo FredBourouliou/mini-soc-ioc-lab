@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Network enrichment requires explicit flag
 - No API keys stored in repository
 
-## [1.0.0] - 2025-01-25
+## [1.0.0] - 2025-09-25
 
 ### Added
 - Initial release with complete IOC detection framework

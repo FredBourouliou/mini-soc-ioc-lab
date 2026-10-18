@@ -73,8 +73,8 @@ def is_valid_ip(ip_str: str) -> bool:
 def is_valid_domain(domain: str) -> bool:
     """Validate domain name format - ensure accurate detection"""
     domain_pattern = re.compile(
-        r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*'
-        r'[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$'
+        r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+'
+        r'[a-zA-Z]{2,63}$'
     )
     return bool(domain_pattern.match(domain))
 

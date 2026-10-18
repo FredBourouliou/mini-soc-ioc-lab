@@ -1,75 +1,68 @@
 # Mini SOC IOC Lab
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+**A small, readable threat-detection lab:** scan files, logs and running processes against a list of indicators of compromise (hashes, IPs, domains) and YARA rules, then get an incident-style report. Built to learn SOC workflows, not to replace an EDR.
 
-A comprehensive Security Operations Center (SOC) and Indicator of Compromise (IOC) laboratory for security training, threat detection, and incident response simulation.
-
-## 🎯 Features
-
-- **IOC Detection**: Scan files and systems for indicators of compromise
-- **YARA Integration**: Advanced pattern matching for malware detection  
-- **OSINT Enrichment**: Enrich IOCs with threat intelligence data
-- **PowerShell Support**: Windows-native scanning capabilities
-- **Docker Ready**: Containerized deployment for easy setup
-- **Extensible Framework**: Easy to add new detection rules and IOC feeds
-
-## 🚀 Quick Start
+## Try it
 
 ```bash
-# Install dependencies
 pip install -r requirements.txt
-
-# Run basic IOC scan
-python src/scan_ioc.py --file samples/sample_malware.bin
-
-# Run YARA scan
-python src/yara_integration.py --target samples/
-
-# Enrich IOCs with OSINT data
-python src/osint_enrich.py --ioc-file ioc/ioc_list.txt
+python src/scan_ioc.py --targets samples/ --ioc ioc/ioc_list.txt --yara yara/rules.yar --no-processes
 ```
 
-## 📁 Project Structure
+Output on the bundled sample (excerpt of `report.md`):
 
 ```
-mini-soc-ioc-lab/
-├── src/                 # Core Python modules
-│   ├── scan_ioc.py     # IOC scanning engine
-│   ├── yara_integration.py  # YARA rules engine
-│   └── osint_enrich.py # OSINT enrichment tools
-├── yara/               # YARA detection rules
-├── ioc/                # IOC feeds and lists
-├── powershell/         # PowerShell scripts
-├── tests/              # Unit tests
-└── docs/               # Documentation
+# IOC Detection Report
+**Total Detections:** 4
+
+| Detection Type | Count |
+|----------------|-------|
+| YARA           | 4     |
+
+### Detection #2
+- **Type:** YARA
+- **Path:** `samples/sample_malware.bin`
+- **YARA Rule:** EICAR_Test_File
 ```
 
-## 🐳 Docker Usage
+The exit code is `1` when something is detected, so it can gate a script or a CI job.
+
+## What's inside
+
+| Path | Content |
+|---|---|
+| `src/scan_ioc.py` | Scanner CLI: file hashes, IPs/domains in logs, running processes (`psutil`), YARA; Markdown / JSON / HTML reports |
+| `src/yara_integration.py` | YARA wrapper and a small rule builder |
+| `src/osint_enrich.py` | Optional enrichment (`--enrich`) via VirusTotal / AbuseIPDB, keys read from the environment, with a local cache |
+| `ioc/ioc_list.txt` | 31 example IOCs, `TYPE\|VALUE\|METADATA` format, documentation IP ranges only |
+| `yara/rules.yar` | 8 rules (EICAR, suspicious strings, network indicators…) |
+| `powershell/scan-ioc.ps1` | Windows-native equivalent of the scanner |
+| `docs/SOC_notes.md` | Triage notes and an example incident write-up |
+
+`samples/sample_malware.bin` is **not malware**: it contains the harmless EICAR test string and fake ransom-note text so the rules have something to match. Some antivirus tools will still flag it.
+
+## Options
+
+```
+--targets PATH...   files or directories to scan
+--ioc FILE          IOC list (required)
+--yara FILE         YARA rules
+--logs FILE...      log files to search for IOC IPs/domains
+--format            markdown | json | html   (default: markdown)
+--output FILE       report path (default: report.md)
+--enrich            OSINT enrichment (network + API keys)
+--no-processes      skip the running-process scan
+```
+
+## Tests and Docker
 
 ```bash
-# Build the image
-docker build -t mini-soc-lab .
-
-# Run the container
-docker run -it -v $(pwd)/samples:/app/samples mini-soc-lab
+pytest tests/ -v                      # 16 tests
+docker build -t mini-soc-ioc-lab .
+docker run --rm -v "$PWD/samples:/app/samples" mini-soc-ioc-lab \
+  --targets samples/ --ioc ioc/ioc_list.txt --yara yara/rules.yar --no-processes
 ```
 
-## 📖 Documentation
+## License
 
-See the [docs/](docs/) folder for detailed documentation including:
-- [SOC Notes and Best Practices](docs/SOC_notes.md)
-- API Documentation
-- Detection Rule Writing Guide
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## ⚠️ Disclaimer
-
-This tool is for educational and authorized security testing purposes only. Always ensure you have proper authorization before scanning systems you don't own.
+[MIT](LICENSE). For education and authorized testing only.

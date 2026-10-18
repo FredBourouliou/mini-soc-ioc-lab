@@ -27,5 +27,5 @@ RUN chown -R scanner:scanner /app
 USER scanner
 
 # Default command
-ENTRYPOINT ["python", "-m", "src.scan_ioc"]
+ENTRYPOINT ["python", "src/scan_ioc.py"]
 CMD ["--help"]

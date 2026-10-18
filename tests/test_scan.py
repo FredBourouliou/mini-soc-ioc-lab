@@ -272,7 +272,7 @@ class TestReportGeneration:
             with open(report_path, 'r') as f:
                 content = f.read()
                 assert '# IOC Detection Report' in content
-                assert 'Total Detections: 1' in content
+                assert '**Total Detections:** 1' in content
                 assert 'TEST' in content
         finally:
             os.unlink(ioc_path)

@@ -36,3 +36,5 @@ env/
 *.db
 .cache/
 output/
+
+.claude/
