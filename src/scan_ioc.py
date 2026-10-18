@@ -6,9 +6,11 @@ Demonstrates: IOC ingestion, file/process/log scanning, YARA integration, report
 
 import argparse
 import hashlib
+import html as html_lib
 import json
 import logging
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -27,6 +29,22 @@ from utils import (
 )
 from yara_integration import YaraScanner
 from osint_enrich import OSINTEnricher
+
+
+_SECRET_ARG = re.compile(
+    r'(?i)(--?(?:password|passwd|pwd|token|secret|api[-_]?key|key|auth)[= ])(\S+)')
+_URL_CREDS = re.compile(r'(\w+://)[^/\s:@]+:[^/\s@]+@')
+
+
+def redact_cmdline(cmdline: str) -> str:
+    """Mask obvious secrets (password/token flags, user:pass@ in URLs) before reporting."""
+    cmdline = _SECRET_ARG.sub(r'\1***', cmdline)
+    return _URL_CREDS.sub(r'\1***@', cmdline)
+
+
+def md_inline(value: Any) -> str:
+    """Make a value safe to put inside a Markdown inline code span."""
+    return str(value).replace('`', "'").replace('\r', ' ').replace('\n', ' ')
 
 
 class IOCScanner:
@@ -190,7 +208,7 @@ class IOCScanner:
                             'pid': proc_info['pid'],
                             'name': proc_info['name'],
                             'ioc': ip,
-                            'cmdline': cmdline,
+                            'cmdline': redact_cmdline(cmdline),
                             'timestamp': format_timestamp(),
                             'severity': 'HIGH'
                         }
@@ -283,13 +301,13 @@ class IOCScanner:
                 f.write(f"- **Timestamp:** {detection['timestamp']}\n")
 
                 if 'path' in detection:
-                    f.write(f"- **Path:** `{detection['path']}`\n")
+                    f.write(f"- **Path:** `{md_inline(detection['path'])}`\n")
                 if 'value' in detection:
-                    f.write(f"- **Value:** `{detection['value']}`\n")
+                    f.write(f"- **Value:** `{md_inline(detection['value'])}`\n")
                 if 'rule' in detection:
                     f.write(f"- **YARA Rule:** {detection['rule']}\n")
                 if 'metadata' in detection:
-                    f.write(f"- **Metadata:** {detection['metadata']}\n")
+                    f.write(f"- **Metadata:** `{md_inline(detection['metadata'])}`\n")
                 if 'enrichment' in detection:
                     f.write(f"- **Enrichment:** {json.dumps(detection['enrichment'], indent=2)}\n")
 
@@ -321,6 +339,7 @@ class IOCScanner:
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
     <title>IOC Detection Report</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 40px; }}
@@ -350,16 +369,17 @@ class IOCScanner:
 """
 
         for det in self.detections:
-            severity = det.get('severity', 'UNKNOWN').lower()
+            esc = lambda v: html_lib.escape(str(v), quote=True)  # noqa: E731
+            severity = det.get('severity', 'UNKNOWN')
             details = json.dumps({k: v for k, v in det.items()
                                  if k not in ['type', 'severity', 'timestamp']},
                                 indent=2)
             html += f"""
-        <tr class="{severity}">
-            <td>{det['type']}</td>
-            <td>{det.get('severity', 'UNKNOWN')}</td>
-            <td><pre>{details}</pre></td>
-            <td>{det['timestamp']}</td>
+        <tr class="{esc(severity.lower())}">
+            <td>{esc(det['type'])}</td>
+            <td>{esc(severity)}</td>
+            <td><pre>{esc(details)}</pre></td>
+            <td>{esc(det['timestamp'])}</td>
         </tr>
 """
 

@@ -355,3 +355,27 @@ class TestProcessScanning:
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
+
+class TestReportSafety:
+    """Untrusted values must not break or inject into reports"""
+
+    def test_redact_cmdline(self):
+        from scan_ioc import redact_cmdline
+        out = redact_cmdline("curl --token abc123 https://bob:hunter2@198.51.100.7/x")
+        assert "abc123" not in out and "hunter2" not in out
+        assert "198.51.100.7" in out
+
+    def test_html_report_escapes_values(self, tmp_path):
+        ioc_file = tmp_path / "ioc.txt"
+        ioc_file.write_text("IP|192.0.2.1|test\n")
+        scanner = IOCScanner(str(ioc_file))
+        scanner.detections = [{
+            'type': 'FILE_HASH', 'severity': 'HIGH',
+            'path': '<script>alert(1)</script>.exe',
+            'timestamp': '2025-01-25 10:00:00'
+        }]
+        report = tmp_path / "r.html"
+        scanner.generate_report(str(report), 'html')
+        content = report.read_text()
+        assert '<script>alert(1)</script>' not in content
+        assert '&lt;script&gt;' in content
